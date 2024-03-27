@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grades for {{ student.name }}</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grades Table for {{ student.name }}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                {% for _, date in dates.items() %}
+                    <th>{{ date }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject, rows in grades.items() %}
+                <tr>
+                    <td>{{ subject }}</td>
+                    {% for date, _ in dates.items() %}
+                        <td>{{ rows.get(date, '') }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Add Grade</h2>
+    <form method="POST" action="{{ url_for('add_student_grade') }}">
+        <label for="class">Class:</label>
+        <input name="class" id="class" value="{{student.class_id}}" readonly>
+        <label for="student">Student:</label>
+        <input name="student" id="student" value='{{student.id}}' readonly>
+        <label for="subject">Subject:</label>
+        <select name="subject" id="subject">
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="date">Date:</label>
+        <input type="date" name="date" id="date">
+        <label for="grade">Grade:</label>
+        <input type="number" name="grade" id="grade" min="0" max="100" required>
+        <input type="submit" value="Add Grade">
+    </form>
+</body> 
+</html>

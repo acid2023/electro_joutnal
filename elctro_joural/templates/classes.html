@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Classes</title>
+</head>
+<body>
+    <h1>List of Classes</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Students</th>
+                <th>Students ids</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class in classes %}
+                <tr>
+                    <td>{{ class.name }}</td>
+                    <td>
+                        <ol>
+                            {% set counter = loop.index0 + 1 %}
+                            {% for student in class.students %}
+                                <li>{{ student.name }}</li>
+                                {% set counter = counter + 1 %}
+                            {% endfor %}
+                        </ol>
+                    </td>
+                    <td>
+                        <ul style="list-style-type: none; padding: 0;">
+
+                    {% for student in class.students %}
+                    <li>{{student.id}}</li>
+                </ul>
+                    {% endfor %}
+                    </td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
