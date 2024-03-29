@@ -3,7 +3,6 @@ import random
 import datetime
 
 from flask import Flask, render_template, request
-import sqlalchemy
 from models import db, Class, Student, Subject, Grades
 
 
@@ -99,6 +98,34 @@ def generate_grades():
     return "Grades created"
 
 
+def get_dates_for_grades(grades: Grades) -> tuple[list[datetime.datetime], dict[datetime.datetime, str]]:
+    dates = []
+    for grade in grades:
+        dates.append(grade.date)
+    dates = sorted(set(dates))
+    formated_dates = {date: date.strftime('%d-%m-%Y') for date in dates}
+    return dates, formated_dates
+
+
+@app.route('/grades/subjects/<int:subject_id>/classes/<int:class_id>', methods=['GET'])
+def show_grades_for_subject(subject_id, class_id):
+    students = Student.query.filter_by(class_id=class_id).all()
+    grades = Grades.query.filter(Grades.student_id.in_([student.id for student in students]), Grades.subject_id == subject_id)
+    subject = Subject.query.get(subject_id)
+
+    dates, formated_dates = get_dates_for_grades(grades)
+
+    students_grades = {}
+    for student in students:
+        students_grades[student.name] = {}
+        for date in dates:
+            grade = grades.filter(Grades.student_id == student.id, Grades.date == date).first()
+            if grade:
+                students_grades[student.name][date] = grade.grade
+    return render_template('grades.html', the_class=Class.query.get(class_id), students=students, 
+                           dates=formated_dates, students_grades=students_grades, subject=subject)
+
+
 @app.route('/grades/student/<int:student_id>', methods=['GET'])
 def show_student_grades(student_id):
 
@@ -107,14 +134,9 @@ def show_student_grades(student_id):
         return "Student not found"
 
     student_grades = Grades.query.filter_by(student_id=student_id)
-    dates = []
-    for grade in student_grades:
-        dates.append(grade.date)
 
-    dates = sorted(set(dates))
-    formated_dates = {date: date.strftime('%d-%m-%Y') for date in dates}
+    dates, formated_dates = get_dates_for_grades(student_grades)
 
-    print(len(set(dates)))
     grades = {}
     for subject in Subject.query.all():
         grades[subject.name] = {}
