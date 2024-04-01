@@ -13,6 +13,7 @@ MarkupSafe==2.1.5
 pg8000==1.30.5
 psycopg2==2.9.9
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 scramp==1.4.4
 six==1.16.0
 SQLAlchemy==2.0.29

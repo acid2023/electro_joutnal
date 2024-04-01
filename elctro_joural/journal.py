@@ -1,13 +1,18 @@
 import lorem
 import random
 import datetime
+import os
+from dotenv import load_dotenv
 
 from flask import Flask, render_template, request
 from models import db, Class, Student, Subject, Grades
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///journal'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+
+#db = SQLAlchemy(app)
+
 
 db.init_app(app)
 
@@ -17,6 +22,7 @@ def populate_students():
     if Class.query.count() == 0:
         return "There are no classes - classes must be created first"
     if Student.query.count() == 0:
+        students_to_add = []
         for _ in range(40):
             name = lorem.sentence().split(" ")[:3]
             for _ in range(4):
@@ -24,13 +30,16 @@ def populate_students():
                 print(class_idx)
                 student_count = Student.query.filter_by(class_id=class_idx).count()
                 if student_count <= 10:
-                    student = Student(name=name, class_id=class_idx)
-                    break
+                    student = {'name': name, 'class_id': class_idx}
+                    students_to_add.append(student)
                 else:
                     continue
-            db.session.add(student)
-        db.session.commit()
-        return "Students created"
+        if students_to_add:
+            db.session.bulk_insert_mappings(Student, students_to_add)    
+            db.session.commit()
+            return "Students created"
+        else:
+            return "non stduents to add"
     else:
         return "Students already exist"
 
@@ -40,35 +49,74 @@ def create_classes():
     if Class.query.count() != 0:
         return "Classes already exist"
     else:
+        classes_to_add = []
         for idx in range(4):
-            class_name = f"Class {idx+1}"
-            class_obj = Class(name=class_name)
-            db.session.add(class_obj)
-        db.session.commit()
-        return "Classes created"
+            class_ = {'name' : f'Class {idx+1}'} 
+            classes_to_add.append(class_)
+        if classes_to_add:
+            db.session.bulk_insert_mappings(Class, classes_to_add)
+            db.session.commit()
+            return "Classes created"
+        else: 
+            return "no classes to add"
 
 
-@app.route('/classes', methods=['GET'])
+@app.route('/classes', methods=('GET', 'POST'))
 def classes():
+    if request.method == 'POST':
+        new_class_name = request.form['new_class_name']
+        new_class = Class(name=new_class_name)
+        db.session.add(new_class)
+        db.session.commit()
+
     classes = Class.query.all()
     return render_template('classes.html', classes=classes)
 
+
+@app.route('/classes/<int:class_id>/students', methods=('GET', 'POST'))
+def students_in_class(class_id):
+    if request.method == 'POST':
+        new_student_name = request.form['new_student_name']
+        new_student = Student(name=new_student_name, class_id=class_id)
+        db.session.add(new_student)
+        db.session.commit()
+    
+    class_ = Class.query.get(class_id)
+    students = Student.query.filter_by(class_id=class_id).all()
+    return render_template('students_in_class.html', class_=class_, students=students)
 
 @app.route('/create_subjects', methods=['GET'])
 def create_subjects():
     if Subject.query.count() != 0:
         return "Subjects already exist"
     else:
+        subjects_to_to_add = []
         for _ in range(6):
             sentence = lorem.sentence().split(" ")
             length = len(sentence)
             index_1 = random.randint(0, length-1)
             index_2 = random.randint(0, length-1)
             title = sentence[index_1].upper() + ' ' + sentence[index_2].upper()
-            subject = Subject(name=title)
-            db.session.add(subject)
+            subject = {'name': title}
+            subjects_to_to_add.append(subject)
+        if subjects_to_to_add:
+            db.session.bulk_insert_mappings(Subject, subjects_to_to_add)
+            db.session.commit()
+            return "Subjects created"
+        else:
+            return "no subjects to add"
+        
+@app.route('/subjects', methods=('GET', 'POST'))
+def subjects():
+    if request.method == 'POST':
+        new_subject_name = request.form['new_subject_name']
+        new_subject = Subject(name=new_subject_name)
+        db.session.add(new_subject)
         db.session.commit()
-        return "Subjects created"
+    
+    subjects = Subject.query.all()
+    return render_template('subjects.html', subjects=subjects)
+    
 
 
 @app.route('/generate_grades', methods=['GET'])

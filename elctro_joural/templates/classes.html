@@ -39,5 +39,10 @@
             {% endfor %}
         </tbody>
     </table>
+    <form method="POST" action="{{ url_for('classes') }}">
+        <label for="new_class_name">New Class:</label>
+        <input type="text" name="new_class_name" id="new_class_name" required>
+        <input type="submit" value="Add New Class">
+    </form>
 </body>
 </html>

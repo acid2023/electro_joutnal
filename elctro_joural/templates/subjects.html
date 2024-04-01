@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Subjects</title>
+</head>
+<body>
+    <h1>List of Subjects</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Subjects</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject in subjects %}
+                <tr>
+                    <td>{{ subject.name }}</td>
+
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('subjects') }}">
+        <label for="new_subject_name">New Subject:</label>
+        <input type="text" name="new_subject_name" id="new_subject_name" required>
+        <input type="submit" value="Add New Subject">
+    </form>
+</body>
+</html>

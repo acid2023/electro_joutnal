@@ -1,0 +1,34 @@
+<!-- templates/grades.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of students for {{ class_.name }} </title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GList of students for {{class_.name }} </h1>
+    <table>
+        <tbody>
+            {% for student in students %}
+                <tr>
+                    <td><a href="{{ url_for('show_student_grades', student_id=student.id) }}">{{ student.name }}</a></td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('students_in_class', class_id=class_.id) }}">
+        <label for="new_student_name">New Student:</label>
+        <input type="text" name="new_student_name" id="new_student_name" required>
+        <input type="submit" value="Add New Student">
+    </form>
+</body>
+</html>
